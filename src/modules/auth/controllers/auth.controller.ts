@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Get, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { AuthService } from '../services/auth.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from 'src/common/decorators/user/user.decorator';
 import { IUser } from 'src/common/decorators/user/user.interface';
 
