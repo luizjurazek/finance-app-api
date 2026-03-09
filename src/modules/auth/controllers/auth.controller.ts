@@ -3,6 +3,8 @@ import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from 'src/common/decorators/user/user.decorator';
 import { IUser } from 'src/common/decorators/user/user.interface';
+import { Prisma } from '@prisma/client';
+import { LoginDto } from '../dtos/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +12,7 @@ export class AuthController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    async login(@Body() body: any) {
+    async login(@Body() body: LoginDto) {
         const user = await this.authService.validateUser(body.email, body.password);
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
@@ -19,7 +21,7 @@ export class AuthController {
     }
 
     @Post('register')
-    async register(@Body() body: any) {
+    async register(@Body() body: Prisma.UserCreateInput) {
         return this.authService.register(body);
     }
 
