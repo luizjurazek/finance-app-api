@@ -23,10 +23,11 @@ model Transaction {
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name     String
-  date     DateTime
-  amount   Decimal  @db.Decimal(10, 2)
-  category String
+  name         String
+  date         DateTime
+  purchaseDate DateTime?
+  amount       Decimal   @db.Decimal(10, 2)
+  category     String
 
   type          TransactionType
   paymentMethod PaymentMethod
