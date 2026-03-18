@@ -2,11 +2,11 @@ import { TransactionType, PaymentMethod } from '@prisma/client';
 
 export class CreateTransactionDto {
     name!: string;
-    purchaseDate!: Date;
+    date!: Date;
     amount!: number;
     category!: string;
     type!: TransactionType;
-    received!: boolean;
+    isPaid!: boolean;
     paymentMethod!: PaymentMethod;
     totalInstallments?: number;
     creditCardId?: number;

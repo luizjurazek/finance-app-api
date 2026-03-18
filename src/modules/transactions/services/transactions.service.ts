@@ -32,10 +32,11 @@ export class TransactionsService {
         const transaction = await this.transactionsRepository.create({
             userId,
             name: dto.name,
-            purchaseDate: dto.purchaseDate,
+            date: dto.date,
             amount: new Prisma.Decimal(dto.amount),
             category: dto.category,
             type: dto.type,
+            isPaid: dto.isPaid,
             paymentMethod: dto.paymentMethod,
             creditCardId: dto.creditCardId ?? null,
         });
@@ -52,15 +53,16 @@ export class TransactionsService {
         const transactionsData: Prisma.TransactionUncheckedCreateInput[] = [];
 
         for (let i = 1; i <= totalInstallments; i++) {
-            const dueDate = this.calculateDueDate(dto.purchaseDate, creditCard.closingDay, creditCard.dueDay, i);
+            const dueDate = this.calculateDueDate(dto.date, creditCard.closingDay, creditCard.dueDay, i);
 
             transactionsData.push({
                 userId,
                 name: `${dto.name} (${i}/${totalInstallments})`,
-                purchaseDate: dueDate,
+                date: dueDate,
                 amount: new Prisma.Decimal(installmentAmount),
                 category: dto.category,
                 type: dto.type,
+                isPaid: dto.isPaid,
                 paymentMethod: dto.paymentMethod,
                 installment: i,
                 totalInstallments,
@@ -72,10 +74,10 @@ export class TransactionsService {
         return this.transactionsRepository.createMany(transactionsData);
     }
 
-    private calculateDueDate(purchaseDate: Date, closingDay: number, dueDay: number, installmentNumber: number): Date {
-        const purchaseDay = purchaseDate.getDate();
-        const purchaseMonth = purchaseDate.getMonth();
-        const purchaseYear = purchaseDate.getFullYear();
+    private calculateDueDate(date: Date, closingDay: number, dueDay: number, installmentNumber: number): Date {
+        const purchaseDay = date.getDate();
+        const purchaseMonth = date.getMonth();
+        const purchaseYear = date.getFullYear();
 
         // Se a compra foi feita antes do fechamento, a 1ª parcela cai na fatura atual
         // Se foi feita depois do fechamento, a 1ª parcela cai na próxima fatura
@@ -109,11 +111,12 @@ export class TransactionsService {
         const data: Prisma.TransactionUncheckedUpdateInput = {};
 
         if (dto.name !== undefined) data.name = dto.name;
-        if (dto.purchaseDate !== undefined) data.purchaseDate = new Date(dto.purchaseDate);
+        if (dto.date !== undefined) data.date = new Date(dto.date);
         if (dto.amount !== undefined) data.amount = new Prisma.Decimal(dto.amount);
         if (dto.category !== undefined) data.category = dto.category;
         if (dto.type !== undefined) data.type = dto.type;
         if (dto.paymentMethod !== undefined) data.paymentMethod = dto.paymentMethod;
+        if (dto.isPaid !== undefined) data.isPaid = dto.isPaid;
 
         return this.transactionsRepository.update(id, data);
     }
