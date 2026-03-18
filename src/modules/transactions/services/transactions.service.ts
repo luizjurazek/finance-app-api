@@ -14,7 +14,6 @@ export class TransactionsService {
     ) {}
 
     async create(userId: number, dto: CreateTransactionDto): Promise<Transaction[]> {
-        const purchaseDate = new Date(dto.date);
         const isInstallment =
             dto.paymentMethod === 'CREDIT_CARD' && dto.totalInstallments !== undefined && dto.totalInstallments > 1;
 
@@ -27,14 +26,13 @@ export class TransactionsService {
         }
 
         if (isInstallment) {
-            return this.createInstallments(userId, dto, purchaseDate);
+            return this.createInstallments(userId, dto);
         }
 
         const transaction = await this.transactionsRepository.create({
             userId,
             name: dto.name,
-            date: purchaseDate,
-            purchaseDate: null,
+            purchaseDate: dto.purchaseDate,
             amount: new Prisma.Decimal(dto.amount),
             category: dto.category,
             type: dto.type,
@@ -45,11 +43,7 @@ export class TransactionsService {
         return [transaction];
     }
 
-    private async createInstallments(
-        userId: number,
-        dto: CreateTransactionDto,
-        purchaseDate: Date,
-    ): Promise<Transaction[]> {
+    private async createInstallments(userId: number, dto: CreateTransactionDto): Promise<Transaction[]> {
         const creditCard = await this.creditCardsService.findOne(dto.creditCardId!, userId);
         const totalInstallments = dto.totalInstallments!;
         const installmentAmount = Number((dto.amount / totalInstallments).toFixed(2));
@@ -58,13 +52,12 @@ export class TransactionsService {
         const transactionsData: Prisma.TransactionUncheckedCreateInput[] = [];
 
         for (let i = 1; i <= totalInstallments; i++) {
-            const dueDate = this.calculateDueDate(purchaseDate, creditCard.closingDay, creditCard.dueDay, i);
+            const dueDate = this.calculateDueDate(dto.purchaseDate, creditCard.closingDay, creditCard.dueDay, i);
 
             transactionsData.push({
                 userId,
                 name: `${dto.name} (${i}/${totalInstallments})`,
-                date: dueDate,
-                purchaseDate,
+                purchaseDate: dueDate,
                 amount: new Prisma.Decimal(installmentAmount),
                 category: dto.category,
                 type: dto.type,
@@ -116,7 +109,7 @@ export class TransactionsService {
         const data: Prisma.TransactionUncheckedUpdateInput = {};
 
         if (dto.name !== undefined) data.name = dto.name;
-        if (dto.date !== undefined) data.date = new Date(dto.date);
+        if (dto.purchaseDate !== undefined) data.purchaseDate = new Date(dto.purchaseDate);
         if (dto.amount !== undefined) data.amount = new Prisma.Decimal(dto.amount);
         if (dto.category !== undefined) data.category = dto.category;
         if (dto.type !== undefined) data.type = dto.type;
